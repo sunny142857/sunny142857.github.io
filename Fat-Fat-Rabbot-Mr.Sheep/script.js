@@ -89,19 +89,7 @@ function ENify(x) {
 }
 
 //Game Functions
-function openTab(evt, tabName) {
-  var i, tabcontent, tablinks;
-  tabcontent = document.getElementsByClassName("tabcontent");
-  for (i = 0; i < tabcontent.length; i++) {
-    tabcontent[i].style.display = "none";
-  }
-  tablinks = document.getElementsByClassName("tablinks");
-  for (i = 0; i < tablinks.length; i++) {
-    tablinks[i].className = tablinks[i].className.replace(" active", "");
-  }
-  document.getElementById(tabName).style.display = "block";
-  evt.currentTarget.className += " active";
-}
+
 
 function reset() {
   game = {
@@ -117,26 +105,59 @@ function reset() {
     ],
 	auto: -1,
 	autoMultiplier: [-1, -1, -1, -1, -1],
-	efficiency: 0,
-	efficiencyBase: EN(1.5),
+	efficiencyBought: 0,
+	efficiencyBase: EN(1.4),
 	rabbotPriceMulti: EN(10),
 	rabbotNow: EN(0)
   };
   
   showAll();
 }
-function showAll() {
-	showFFCoin();
-	showMultipier();
-	showAutoBuy();
-	showRabbot();
-	showEfficiency();
-}
+
+/*************
+ * Save/Load *
+ *************/
+ 
 function saveGame() {
   localStorage.setItem(savePath, JSON.stringify(game));
 }
 function exportGame() {
   copyStringToClipboard(btoa(JSON.stringify(game)))
+}
+function copyStringToClipboard(str) {
+  var el = document.createElement("textarea");
+  el.value = str;
+  el.setAttribute("readonly", "");
+  el.style = {
+    position: "absolute",
+    left: "-9999px"
+  };
+  document.body.appendChild(el);
+  copyToClipboard(el)
+  document.body.removeChild(el);
+  alert("Copied to clipboard")
+}
+
+function copyToClipboard(el) {
+    el = (typeof el === "string") ? document.querySelector(el) : el;
+    if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
+        var editable = el.contentEditable;
+        var readOnly = el.readOnly;
+        el.contentEditable = true;
+        el.readOnly = true;
+        var range = document.createRange();
+        range.selectNodeContents(el);
+        var selection = window.getSelection();
+        selection.removeAllRanges();
+        selection.addRange(range);
+        el.setSelectionRange(0, 999999);
+        el.contentEditable = editable;
+        el.readOnly = readOnly;
+    }
+    else {
+        el.select();
+    }
+    document.execCommand("copy");
 }
 function importGame() {
   let loadgameTemp=""
@@ -152,7 +173,7 @@ function loadingGame(loadgameTemp) {
 	game["multi"] = (loadgameTemp["multi"]).map(ENify);
 	game["auto"] = Number(loadgameTemp["auto"]);
 	game["autoMultiplier"] = (loadgameTemp["autoMultiplier"]).map(Number);;
-	game["efficiency"] = Number(loadgameTemp["efficiency"]);
+	game["efficiencyBought"] = Number(loadgameTemp["efficiencyBought"]);
 	game["efficiencyBase"] = ENify(loadgameTemp["efficiencyBase"]);
 	game["rabbotPriceMulti"] = ENify(loadgameTemp["rabbotPriceMulti"]);
 	game["rabbotNow"] = ENify(loadgameTemp["rabbotNow"]);
@@ -207,6 +228,41 @@ function multiplier2(n) {
   }
 }
 
+function functionAutoMulti(n){
+	if(game.autoMultiplier[n-1] == -1) {
+		if (game.FFCoin.gte(autoMultiReq[n-1])) {
+			game.autoMultiplier[n-1] = 0;
+			showAutoBuy();
+		}
+	}else{
+		game.autoMultiplier[n-1] = 1 - game.autoMultiplier[n-1];
+		showAutoBuy();
+	}
+}
+function functionAutoGainCoin(n){
+	if(game.auto == -1) {
+		if (game.FFCoin.gte(autoReq)) {
+			game.auto = 0;
+			showAutoBuy();
+		}
+	}else{
+		game.auto = 1 - game.auto;
+		showAutoBuy();
+	}
+}
+
+/**********
+ * Render *
+ **********/
+ 
+function showAll() {
+	showFFCoin();
+	showMultipier();
+	showAutoBuy();
+	showRabbot();
+	showEfficiency();
+}
+
 function showMultipier(){
 	for (var n = 1; n < 6; n++) {
 		document.getElementById("multi" + n).innerHTML = beautifyEN(game.multi[n - 1]);
@@ -224,38 +280,14 @@ function showEfficiency() {
 	game.efficiency = game.efficiencyBase.pow(game.rabbotNow);
 	document.getElementById("efficiency").innerHTML = beautifyEN(game.efficiency) + "x";
 }
-function functionAutoMulti(n){
-	if(game.autoMultiplier[n-1] == -1) {
-		if (game.FFCoin.gte(autoMultiReq[n-1])) {
-			game.autoMultiplier[n-1] = 0;
-			showAutoBuy();
-		}
-	}else{
-		game.autoMultiplier[n-1] = 1 - game.autoMultiplier[n-1];
-		showAutoBuy();
-	}
-}
-function functionAutoGainCoin(n){
-	if(game.auto == -1) {
-		if (game.FFCoin.gte(autoReq)) {
-			console.log("Test")
-			game.auto = 0;
-			document.getElementById("toggleAutoGainCoinButton").className = ("offButton");
-			showAutoBuy();
-		}
-	}else{
-		game.auto = 1 - game.auto;
-		showAutoBuy();
-	}
-}
 function showAutoBuy() {
 	for (var n = 1; n < 6; n++) {
 		if (game.autoMultiplier[n-1] == 1) {
 			document.getElementById("toggleAutoBuyMultiButton"+n).className = ("onButton");
-			document.getElementById("toggleAutoBuyMultiButton"+n).innerHTML = "<div> Auto Employing "+gameStrings["FF"+n]+": </div><span style=\"vertical-align: middle; display: inline-block; line-height: normal;\" id=\"autoBuyMulti"+n+"\">ON</span>";
+			document.getElementById("toggleAutoBuyMultiButton"+n).innerHTML = "<div> Auto Employ "+gameStrings["FF"+n]+": </div><span style=\"vertical-align: middle; display: inline-block; line-height: normal;\" id=\"autoBuyMulti"+n+"\">ON</span>";
 		}else if(game.autoMultiplier[n-1] == 0){
 			document.getElementById("toggleAutoBuyMultiButton"+n).className = ("offButton");
-			document.getElementById("toggleAutoBuyMultiButton"+n).innerHTML = "<div> Auto Employing "+gameStrings["FF"+n]+": </div><span style=\"vertical-align: middle; display: inline-block; line-height: normal;\" id=\"autoBuyMulti"+n+"\">OFF</span>";
+			document.getElementById("toggleAutoBuyMultiButton"+n).innerHTML = "<div> Auto Employ "+gameStrings["FF"+n]+": </div><span style=\"vertical-align: middle; display: inline-block; line-height: normal;\" id=\"autoBuyMulti"+n+"\">OFF</span>";
 		}else if(game.autoMultiplier[n-1] == -1){
 			document.getElementById("toggleAutoBuyMultiButton"+n).className = ("lockedButton");
 			document.getElementById("toggleAutoBuyMultiButton"+n).innerHTML = "<div>Unlock Auto Employing <text id=\"autoFF"+n+"\">" + gameStrings["FF"+n] + "</text></div><div>Cost: <data id=\"auto"+n+"cost\">" + beautifyEN(autoMultiReq[n-1]) + "</data> FFC</div>";
@@ -269,9 +301,24 @@ function showAutoBuy() {
 		document.getElementById("toggleAutoGainCoinButton").innerHTML = "<div> Auto Gain "+gameStrings["FFC"]+": </div> <text id=\"autoGainText\">OFF</text>";
 	}else if (game.auto == -1) {
 		document.getElementById("toggleAutoGainCoinButton").className = ("lockedButton");
-		document.getElementById("toggleAutoGainCoinButton").innerHTML = "<div>Unlock Auto Gaining <text id=\"autoFFC\">"+gameStrings["FFC"]+"</text></div><div>Cost: <data id=\"autoFFCcost\">"+beautifyEN(autoReq)+"</data> FFC</div>";
+		document.getElementById("toggleAutoGainCoinButton").innerHTML = "<div>Unlock Auto Gain <text id=\"autoFFC\">"+gameStrings["FFC"]+"</text></div><div>Cost: <data id=\"autoFFCcost\">"+beautifyEN(autoReq)+"</data> FFC</div>";
 	}
 }
+
+function openTab(evt, tabName) {
+  var i, tabcontent, tablinks;
+  tabcontent = document.getElementsByClassName("tabcontent");
+  for (i = 0; i < tabcontent.length; i++) {
+    tabcontent[i].style.display = "none";
+  }
+  tablinks = document.getElementsByClassName("tablinks");
+  for (i = 0; i < tablinks.length; i++) {
+    tablinks[i].className = tablinks[i].className.replace(" active", "");
+  }
+  document.getElementById(tabName).style.display = "block";
+  evt.currentTarget.className += " active";
+}
+/*
 function toggleBulkBuying() {
   game.bulk = (game.bulk + 1) % bulkBuying.length;
   switch(game.bulk) {
@@ -292,42 +339,8 @@ function toggleBulkBuying() {
   }
   showMultipier();
 }
+*/
 
-function copyStringToClipboard(str) {
-  var el = document.createElement("textarea");
-  el.value = str;
-  el.setAttribute("readonly", "");
-  el.style = {
-    position: "absolute",
-    left: "-9999px"
-  };
-  document.body.appendChild(el);
-  copyToClipboard(el)
-  document.body.removeChild(el);
-  alert("Copied to clipboard")
-}
-
-function copyToClipboard(el) {
-    el = (typeof el === "string") ? document.querySelector(el) : el;
-    if (navigator.userAgent.match(/ipad|ipod|iphone/i)) {
-        var editable = el.contentEditable;
-        var readOnly = el.readOnly;
-        el.contentEditable = true;
-        el.readOnly = true;
-        var range = document.createRange();
-        range.selectNodeContents(el);
-        var selection = window.getSelection();
-        selection.removeAllRanges();
-        selection.addRange(range);
-        el.setSelectionRange(0, 999999);
-        el.contentEditable = editable;
-        el.readOnly = readOnly;
-    }
-    else {
-        el.select();
-    }
-    document.execCommand("copy");
-}
 //Run
 reset();
 window.setInterval(function() {

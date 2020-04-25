@@ -24,7 +24,7 @@ h1 {
   background-color: #FFFFFF;
 }
 .defaultButton {  
-	height: 48px;
+	height: 72px;
 	background-color: #999999; /* Dark Gray */
 	border: 1px solid black;
 	color: #FFFFFF;
@@ -35,10 +35,7 @@ h1 {
 	font-size: 16px;
 }
 .onButton {  
-	display: grid; 
-	grid-template-columns: 80% 20%; 
-	align-items: center;
-	height: 48px;
+	height: 72px;
 	background-color: #4CAF50; /* Green */
 	border: 1px solid green;
 	color: white;
@@ -46,12 +43,12 @@ h1 {
 	/*text-align: center;*/
 	text-decoration: none;
 	font-size: 16px;
-}
-.offButton {  
 	display: grid; 
 	grid-template-columns: 80% 20%; 
-	align-content: center;
-	height: 48px;
+	align-items: center;
+}
+.offButton {  
+	height: 72px;
 	background-color: #f44336; /* Red */
 	border: 1px solid red;
 	color: white;
@@ -59,9 +56,12 @@ h1 {
 	text-align: center;
 	text-decoration: none;
 	font-size: 16px;
+	display: grid; 
+	grid-template-columns: 80% 20%; 
+	align-content: center;
 }
 .lockedButton {  
-	height: 48px;
+	height: 72px;
 	background-color: #555555; /* Black */
 	border: 1px solid black;
 	color: white;
@@ -110,14 +110,18 @@ data {
  *******/
  
 /* Style the tab */
-.tab {
-  overflow: hidden;
-  border: 1px solid #999999;
-  background-color: #FFFFFF;
+.tabMain {
+	display: grid;
+	grid-template-columns: 33.3% 33.3% 33.3%; 
+	align-items: center;
+	width: 100%;
+	overflow: hidden;
+	border: 1px solid #999999;
+	background-color: #FFFFFF;
 }
 
 /* Style the buttons inside the tab */
-.tab button {
+.tabMain button {
   background-color: inherit;
   float: left;
   border: none;
@@ -129,13 +133,13 @@ data {
 }
 
 /* Change background color of buttons on hover */
-.tab button:hover {
+.tabMain button:hover {
 	color: #FFFFFF;
 	background-color: #777777;
 }
 
 /* Create an active/current tablink class */
-.tab button.active {
+.tabMain button.active {
 	color: #FFFFFF;
 	background-color: #555555;
 }
